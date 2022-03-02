@@ -4,7 +4,7 @@ const path = require("path");
 const fsP = fs.promises;
 
 const csvDirectory = "csv";
-const prepod = "Бормотов А.О.";
+const prepod = "Бормотов";
 
 async function parseShedule() {
   const dir = await fsP.readdir(path.join(__dirname, csvDirectory));
@@ -13,13 +13,14 @@ async function parseShedule() {
     const content = await fsP.readFile(path.join(__dirname, csvDirectory, file), "UTF-8");
     let rows = content.split('\n');
 
-    const header = rows[0];
-    rows.shift();
+    //const header = rows[0];
+    //console.log(rows[0]);
+    //rows.shift();
 
     let profsAsArray = [], curProf;
     const profs = splitCSV(rows[0]).slice(2);
     while (profs.length > 0) {
-      if (profs[0]) curProf = profs[0];
+      if (profs[0]) curProf = profs[0].split(' ').filter(word => word[0] === word[0].toUpperCase() && !word.includes('.')).join('');
       profsAsArray.push(curProf);
 
       profs.shift();
@@ -29,8 +30,8 @@ async function parseShedule() {
 
     let day, time, hashTable = {};
 
-    while (rows.length > 0) {
-      let columns = splitCSV(rows[0]);
+    for (row of rows) {
+      let columns = splitCSV(row);
 
       if (columns[0]) {
         day = columns[0].replaceAll('"', '').split(',')[0];
@@ -47,10 +48,7 @@ async function parseShedule() {
         hashTable[day][time] = [];
       }
 
-      console.log(day, time);
       hashTable[day][time] = mergeIntoTable(hashTable[day][time], columns.slice(2));
-
-      rows.shift();
     }
 
     Object.keys(hashTable).forEach(day => {
@@ -63,7 +61,7 @@ async function parseShedule() {
         lessons.forEach((lesson, i) => {
           const les = lesson.trim().replaceAll('  ', ' ');
 
-          if (les != '' && profsAsArray[i] === prepod) { //Choose prof
+          if (les !== '') { //Choose prof  && profsAsArray[i] === prepod
             hashTable[day][time][profsAsArray[i]] += ' ' + lesson;
           }
         });
@@ -121,9 +119,9 @@ function to12h(time) {
 }; 
 
 function splitCSV(str) {
-  return str.split(',').reduce((accum,curr)=>{
+  return str.trim().split(';').reduce((accum,curr)=>{
     if(accum.isConcatting) {
-      accum.soFar[accum.soFar.length-1] += ','+curr
+      accum.soFar[accum.soFar.length-1] += ';'+curr
     } else {
       accum.soFar.push(curr)
     }
