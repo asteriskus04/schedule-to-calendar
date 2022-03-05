@@ -3,14 +3,13 @@ const path = require("path");
 
 const fsP = fs.promises;
 
-const csvDirectory = "csv";
-const prepod = "Бормотов";
+const config = require('./config');
 
 async function parseShedule() {
-  const dir = await fsP.readdir(path.join(__dirname, csvDirectory));
+  const dir = await fsP.readdir(path.join(__dirname, config.scheduleDir));
 
   for (let file of dir) {
-    const content = await fsP.readFile(path.join(__dirname, csvDirectory, file), "UTF-8");
+    const content = await fsP.readFile(path.join(__dirname, config.scheduleDir, file), "UTF-8");
     let rows = content.split('\n');
 
     //const header = rows[0];
@@ -65,7 +64,7 @@ async function parseShedule() {
         lessons.forEach((lesson, i) => {
           const les = lesson.trim().replaceAll('  ', ' ');
 
-          if (les !== '' && profsAsArray[i] === prepod) { //Choose prof  
+          if (les !== '' && config.prof ? profsAsArray[i] === config.prof : true) { //Choose prof  
             hashTable[day][time][profsAsArray[i]] += ' ' + lesson;
           }
         });
