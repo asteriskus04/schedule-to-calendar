@@ -37,31 +37,28 @@ async function parseShedule() {
         day = columns[0].replaceAll('"', '').split(',')[0];
         hashTable[day] = {};
 
-        if (!columns[1]) {
-          time = "9:00 - 17:30";
-          hashTable[day][time] = [];
-        }
+        if (!columns[1]) continue;
       }
 
       if (columns[1]) {
         time = columns[1];
+
         hashTable[day][time] = [];
       }
 
+      if (!hashTable[day][time]) continue;
       hashTable[day][time] = mergeIntoTable(hashTable[day][time], columns.slice(2));
     }
 
     Object.keys(hashTable).forEach(day => {
       Object.keys(hashTable[day]).forEach(time => {
-        if (time === "9:00 - 17:30") return delete hashTable[day][time];
-
         const lessons = hashTable[day][time];
         hashTable[day][time] = {};
 
         lessons.forEach((lesson, i) => {
           const les = lesson.trim().replaceAll('  ', ' ');
 
-          if (les !== '') { //Choose prof  && profsAsArray[i] === prepod
+          if (les !== '' && profsAsArray[i] === prepod) { //Choose prof  
             hashTable[day][time][profsAsArray[i]] += ' ' + lesson;
           }
         });
