@@ -82,7 +82,7 @@ async function parseShedule() {
 
     await fsP.writeFile(path.join(__dirname, 'test.json'), JSON.stringify(hashTable).replaceAll(/\s{2,}/g, ' '));
 
-    await exportToCSVForGoogleCalendar(hashTable);
+    await exportToCSVForGoogleCalendar(profsAsArray, hashTable);
   }
 
 };
@@ -95,8 +95,10 @@ function mergeIntoTable(table, elements) {
   return table.map((item, i) => item + ' ' + elements[i]);
 }
 
-async function exportToCSVForGoogleCalendar(hashTable) {
+async function exportToCSVForGoogleCalendar(profs, hashTable) {
   let csv = "Subject,Start Date,Start Time,End Time,All Day Event,Private";
+  let replcsv = "Subject,Start Date,Start Time,End Time,All Day Event,Private";
+  profs = [...new Set(profs)];
 
   Object.keys(hashTable).forEach(day => {
     Object.keys(hashTable[day]).forEach(time => {
@@ -106,12 +108,15 @@ async function exportToCSVForGoogleCalendar(hashTable) {
       startDate = [startDate[1], startDate[0], startDate[2]].join('/');
       const allDayEvent = (subject.includes("ДЕЖ"));
       const private = false;
+      const summary = `\n${subject},${startDate},${startTime},${endTime},${allDayEvent},${private}`;
 
-      csv += `\n${subject},${startDate},${startTime},${endTime},${allDayEvent},${private}`;
+      if (profs.some(prof => subject.includes(prof))) replcsv += summary;
+      else csv += summary;
     });
   });
 
   await fsP.writeFile(path.join(__dirname, 'for_calendar.csv'), csv);
+  await fsP.writeFile(path.join(__dirname, 'for_calendar_repls.csv'), replcsv);
 }
 
 function to12h(time) {
