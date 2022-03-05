@@ -28,27 +28,34 @@ async function parseShedule() {
 
     rows.shift();
 
-    let day, time, hashTable = {};
+    let day, time, hashTable = {}, dayChanged, appendMode;
 
     for (row of rows) {
       let columns = splitCSV(row);
 
       if (columns[0]) {
         day = columns[0].replaceAll('"', '').split(',')[0];
+        dayChanged = true;
         hashTable[day] = {};
 
         if (!columns[1]) continue;
       }
 
       if (columns[1]) {
+        appendMode = false;
+        if (time === columns[1] && !dayChanged) appendMode = true;
         time = columns[1];
 
-        hashTable[day][time] = [];
+        if (!appendMode) hashTable[day][time] = [];
       }
+
+      dayChanged = false;
 
       if (!hashTable[day][time]) continue;
       hashTable[day][time] = mergeIntoTable(hashTable[day][time], columns.slice(2));
     }
+
+    //console.log(hashTable["02.03.2022"]);
 
     Object.keys(hashTable).forEach(day => {
       Object.keys(hashTable[day]).forEach(time => {
@@ -73,7 +80,7 @@ async function parseShedule() {
       if (Object.keys(hashTable[day]).length === 0) delete hashTable[day];
     });
 
-    await fsP.writeFile(path.join(__dirname, 'test.json'), JSON.stringify(hashTable));
+    await fsP.writeFile(path.join(__dirname, 'test.json'), JSON.stringify(hashTable).replaceAll(/\s{2,}/g, ' '));
 
     await exportToCSVForGoogleCalendar(hashTable);
   }
@@ -93,7 +100,7 @@ async function exportToCSVForGoogleCalendar(hashTable) {
 
   Object.keys(hashTable).forEach(day => {
     Object.keys(hashTable[day]).forEach(time => {
-      const subject = `"${Object.values(hashTable[day][time]).reduce((acc, i) => acc + i).replace('"', '')}"`;
+      const subject = `"${Object.values(hashTable[day][time]).reduce((acc, i) => acc + i).replaceAll('"', '')}"`;
       let [startTime, endTime] = time.split('-').map(i => to12h(i.trim()));
       let startDate = day.split('.');
       startDate = [startDate[1], startDate[0], startDate[2]].join('/');
