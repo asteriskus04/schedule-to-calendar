@@ -12,10 +12,6 @@ async function parseShedule() {
     const content = await fsP.readFile(path.join(__dirname, config.scheduleDir, file), "UTF-8");
     let rows = content.split('\n');
 
-    //const header = rows[0];
-    //console.log(rows[0]);
-    //rows.shift();
-
     let profsAsArray = [], curProf;
     const profs = splitCSV(rows[0]).slice(2);
     while (profs.length > 0) {
@@ -53,8 +49,6 @@ async function parseShedule() {
       if (!hashTable[day][time]) continue;
       hashTable[day][time] = mergeIntoTable(hashTable[day][time], columns.slice(2));
     }
-
-    //console.log(hashTable["02.03.2022"]);
 
     Object.keys(hashTable).forEach(day => {
       Object.keys(hashTable[day]).forEach(time => {
