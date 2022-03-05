@@ -12,7 +12,8 @@ async function parseShedule() {
     const content = await fsP.readFile(path.join(__dirname, config.scheduleDir, file), "UTF-8");
     let rows = content.split('\n');
 
-    let profsAsArray = [], curProf;
+    let profsAsArray = [],
+      curProf;
     const profs = splitCSV(rows[0]).slice(2);
     while (profs.length > 0) {
       if (profs[0]) curProf = profs[0].split(' ').filter(word => word[0] === word[0].toUpperCase() && !word.includes('.')).join('');
@@ -23,7 +24,8 @@ async function parseShedule() {
 
     rows.shift();
 
-    let day, time, hashTable = {}, dayChanged, appendMode;
+    let day, time, hashTable = {},
+      dayChanged, appendMode;
 
     for (row of rows) {
       let columns = splitCSV(row);
@@ -118,18 +120,21 @@ function to12h(time) {
   const ampm = (h < 12 || h === 24) ? "AM" : "PM";
 
   return `${H}:${m} ${ampm}`;
-}; 
+};
 
 function splitCSV(str) {
-  return str.trim().split(';').reduce((accum,curr)=>{
-    if(accum.isConcatting) {
-      accum.soFar[accum.soFar.length-1] += ';'+curr
+  return str.trim().split(';').reduce((accum, curr) => {
+    if (accum.isConcatting) {
+      accum.soFar[accum.soFar.length - 1] += ';' + curr
     } else {
       accum.soFar.push(curr)
     }
-    if(curr.split('"').length % 2 == 0) {
-      accum.isConcatting= !accum.isConcatting
+    if (curr.split('"').length % 2 == 0) {
+      accum.isConcatting = !accum.isConcatting
     }
     return accum;
-  },{soFar:[],isConcatting:false}).soFar
+  }, {
+    soFar: [],
+    isConcatting: false
+  }).soFar
 }
